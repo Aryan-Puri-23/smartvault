@@ -283,11 +283,17 @@ export default function Analytics({ files }) {
               {c.files.map((f) => (
                 <div key={f._id || f.filename} className="border rounded overflow-hidden aspect-square flex items-center justify-center">
                   {f.mimetype.startsWith("image/") ? (
+                    // <img
+                    //   src={`http://localhost:5000/uploads/${encodeURIComponent(f.filename)}`}
+                    //   alt={f.originalname}
+                    //   className="object-cover h-full w-full"
+                    // />
                     <img
-                      src={`http://localhost:5000/uploads/${encodeURIComponent(f.filename)}`}
-                      alt={f.originalname}
-                      className="object-cover h-full w-full"
-                    />
+  src={f.url}
+  alt={f.originalname}
+  className="object-cover h-full w-full"
+/>
+
                   ) : (
                     <span className="text-xs text-gray-600 text-center px-1">{f.originalname}</span>
                   )}

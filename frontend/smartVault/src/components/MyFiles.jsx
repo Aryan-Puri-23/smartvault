@@ -35,7 +35,6 @@ export default function MyFiles({ files, setFiles, userId }) {
 
 
 
-
 const handleUpload = async (e) => {
   e.preventDefault();
   if (!uploadData.file) return alert("Please select a file!");
@@ -56,19 +55,60 @@ const handleUpload = async (e) => {
     const data = await res.json();
     console.log("Upload response:", data);
 
+    // ✅ Use Cloudinary URL from backend
+    const newFile = {
+      ...data.file,   // data.file contains cloudinaryUrl & other file info
+      url: data.file.url, // virtual field pointing to cloudinaryUrl
+    };
+    setFiles(prev => [newFile, ...prev]);
+
     setShowUpload(false);
     setUploadData({ file: null, description: "", tags: "", customName: "" });
     setPreviewUrl(null);
 
-    // ✅ Fetch complete file list again
-    const filesRes = await fetch(`http://localhost:5000/api/files?userId=${userId}`);
-    const filesData = await filesRes.json();
-    setFiles(filesData);
+    // Optional: fetch complete file list again
+    // const filesRes = await fetch(`http://localhost:5000/api/files?userId=${userId}`);
+    // const filesData = await filesRes.json();
+    // setFiles(filesData);
   } catch (err) {
     console.error("Upload failed:", err);
     alert("Upload failed!");
   }
 };
+
+// const handleUpload = async (e) => {
+//   e.preventDefault();
+//   if (!uploadData.file) return alert("Please select a file!");
+
+//   try {
+//     const formData = new FormData();
+//     formData.append("file", uploadData.file);
+//     formData.append("description", uploadData.description);
+//     formData.append("tags", uploadData.tags);
+//     formData.append("userId", userId);
+//     formData.append("customName", uploadData.customName);
+
+//     const res = await fetch("http://localhost:5000/api/files/upload", {
+//       method: "POST",
+//       body: formData,
+//     });
+
+//     const data = await res.json();
+//     console.log("Upload response:", data);
+
+//     setShowUpload(false);
+//     setUploadData({ file: null, description: "", tags: "", customName: "" });
+//     setPreviewUrl(null);
+
+//     // ✅ Fetch complete file list again
+//     const filesRes = await fetch(`http://localhost:5000/api/files?userId=${userId}`);
+//     const filesData = await filesRes.json();
+//     setFiles(filesData);
+//   } catch (err) {
+//     console.error("Upload failed:", err);
+//     alert("Upload failed!");
+//   }
+// };
 
 
 
@@ -392,7 +432,9 @@ const handleSaveEdit = async () => {
                   <div className="mt-3 flex h-32 items-center justify-center rounded-md border bg-gray-50 text-gray-400 text-sm overflow-hidden">
                     {(file.mimetype || "").startsWith("image/") ? (
                       <img
-                        src={`http://localhost:5000/uploads/${encodeURIComponent(file.filename)}`}
+                        // src={`http://localhost:5000/uploads/${encodeURIComponent(file.filename)}`}
+                        src={file.url}
+
                         alt={file.originalname || file.customName}
                         className="h-full w-full object-cover cursor-pointer"
                         onClick={() => setSelectedFile(file)}
@@ -400,7 +442,9 @@ const handleSaveEdit = async () => {
                       />
                     ) : (file.mimetype || "").startsWith("video/") ? (
                       <video
-                        src={`http://localhost:5000/uploads/${encodeURIComponent(file.filename)}`}
+                        // src={`http://localhost:5000/uploads/${encodeURIComponent(file.filename)}`}
+                        src={file.url}
+
                         className="h-full w-full object-cover cursor-pointer"
                         controls
                       />
@@ -441,9 +485,11 @@ const handleSaveEdit = async () => {
 
                     <button
                       onClick={() =>
-                        navigator.clipboard.writeText(
-                          `http://localhost:5000/uploads/${encodeURIComponent(file.filename)}`
-                        )
+                        // navigator.clipboard.writeText(
+                        //   `http://localhost:5000/uploads/${encodeURIComponent(file.filename)}`
+                        // )
+                        navigator.clipboard.writeText(file.url)
+
                       }
                       className="flex items-center gap-1 text-gray-600 hover:text-black cursor-pointer"
                     >
@@ -463,7 +509,16 @@ const handleSaveEdit = async () => {
                         // trigger download
                         const a = document.createElement("a");
                         a.href = url;
-                        a.download = file.originalname;
+                        // a.download = file.originalname;
+                        const ext = file.originalname.split('.').pop();
+a.download = file.customName ? `${file.customName}.${ext}` : file.originalname;
+
+
+
+
+
+
+
                         a.click();
                         a.remove();
 
@@ -508,7 +563,9 @@ const handleSaveEdit = async () => {
                   <div className="h-20 w-20 flex items-center justify-center rounded-md border bg-gray-50 overflow-hidden">
                     {(file.mimetype || "").startsWith("image/") ? (
                       <img
-                        src={`http://localhost:5000/uploads/${encodeURIComponent(file.filename)}`}
+                        // src={`http://localhost:5000/uploads/${encodeURIComponent(file.filename)}`}
+                        src={file.url}
+
                         alt={file.originalname}
                         className="h-full w-full object-cover cursor-pointer"
                         onClick={() => setSelectedFile(file)}
@@ -572,9 +629,11 @@ const handleSaveEdit = async () => {
 
                   <button
                     onClick={() =>
-                      navigator.clipboard.writeText(
-                        `http://localhost:5000/uploads/${encodeURIComponent(file.filename)}`
-                      )
+                      // navigator.clipboard.writeText(
+                      //   `http://localhost:5000/uploads/${encodeURIComponent(file.filename)}`
+                      // )
+                      navigator.clipboard.writeText(file.url)
+
                     }
                     className="flex items-center gap-1 text-gray-600 hover:text-black cursor-pointer"
                   >
@@ -592,7 +651,16 @@ const handleSaveEdit = async () => {
                       const url = window.URL.createObjectURL(blob);
                       const a = document.createElement("a");
                       a.href = url;
-                      a.download = file.originalname;
+                      // a.download = file.originalname;
+                      const ext = file.originalname.split('.').pop();
+a.download = file.customName ? `${file.customName}.${ext}` : file.originalname;
+
+
+
+
+
+
+
                       a.click();
                       a.remove();
                       setFiles((prev) =>
@@ -781,7 +849,28 @@ const handleSaveEdit = async () => {
               {selectedFile.customName || selectedFile.originalname || "Unnamed File"}
             </h2>
 
+
             {selectedFile.mimetype?.startsWith("image/") ? (
+  <img 
+    src={selectedFile.url} // use url instead of cloudinaryUrl
+    alt={selectedFile.originalname} 
+    className="w-full h-auto object-contain" 
+  />
+) : selectedFile.mimetype?.startsWith("video/") ? (
+  <video 
+    src={selectedFile.url} // use url instead of cloudinaryUrl
+    controls 
+    className="w-full h-auto" 
+  />
+) : (
+  <p>File type preview not available</p>
+)}
+
+
+
+
+
+            {/* {selectedFile.mimetype?.startsWith("image/") ? (
               <img
                 src={`http://localhost:5000/uploads/${encodeURIComponent(selectedFile.filename)}`}
                 alt={selectedFile.originalname}
@@ -796,7 +885,7 @@ const handleSaveEdit = async () => {
               />
             ) : (
               <p>File type preview not available</p>
-            )}
+            )} */}
 
             <p className="mt-4 text-gray-600">{selectedFile.description || "No description"}</p>
 

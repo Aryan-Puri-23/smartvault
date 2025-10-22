@@ -202,13 +202,21 @@ export default function Overview() {
                     >
                       <Eye className="w-6 h-6 text-blue-600 cursor-pointer hover:bg-gray-100" />
                     </button>
-                    <a
+                    {/* <a
                       href={`http://localhost:5000/api/files/${f._id}/download`}
                       download={f.originalname}
                       className="p-1 rounded hover:bg-gray-100"
                     >
                       <Download className="w-6 h-6 text-green-600" />
-                    </a>
+                    </a> */}
+                    <a
+  href={f.url}
+  download={f.originalname}
+  className="p-1 rounded hover:bg-gray-100"
+>
+  <Download className="w-6 h-6 text-green-600" />
+</a>
+
                   </td>
                 </tr>
               ))}
@@ -361,7 +369,7 @@ export default function Overview() {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-lg font-bold mb-2">{selectedFile.customName}</h2>
-            {selectedFile.mimetype.startsWith("image/") ? (
+            {/* {selectedFile.mimetype.startsWith("image/") ? (
               <img
                 src={`http://localhost:5000/uploads/${encodeURIComponent(selectedFile.filename)}`}
                 alt={selectedFile.originalname}
@@ -375,7 +383,22 @@ export default function Overview() {
               />
             ) : (
               <p>File type preview not available</p>
-            )}
+            )} */}
+            {selectedFile.mimetype.startsWith("image/") ? (
+  <img
+    src={selectedFile.url}
+    alt={selectedFile.originalname}
+    className="w-full h-auto object-contain"
+  />
+) : selectedFile.mimetype.startsWith("video/") ? (
+  <video
+    src={selectedFile.url}
+    controls
+    className="w-full h-auto"
+  />
+) : (
+  <p>File type preview not available</p>
+)}
             <p className="mt-4 text-gray-600">{selectedFile.description}</p>
             <div className="mt-4 flex flex-wrap gap-4">
               {selectedFile.tags.map((tag, i) => (

@@ -1,25 +1,16 @@
 import express from "express";
 import multer from "multer";
 import File from "../models/File.js";
-import path from "path";
-import fs from "fs";
 import Log from "../models/Log.js";
+import cloudinary from "../cloudinary.js";
 
 const router = express.Router();
 
-// Configure multer to store files locally in /uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // store files in 'uploads' folder
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname); // unique filename
-  },
-});
-
+// ----------------- MULTER MEMORY STORAGE -----------------
+const storage = multer.memoryStorage(); // store files in memory
 const upload = multer({ storage });
 
-// @route POST /api/files/upload
+// ----------------- UPLOAD FILE -----------------
 router.post("/upload", upload.single("file"), async (req, res) => {
   try {
     const { description, tags, userId, customName, folderId } = req.body;
@@ -28,15 +19,34 @@ router.post("/upload", upload.single("file"), async (req, res) => {
     const newFile = new File({
       userId,
       folderId: folderId || null,
-      filename: req.file.filename,
       originalname: req.file.originalname,
       customName: customName || req.file.originalname,
       description,
       tags: tags ? tags.split(",").map((t) => t.trim()) : [],
       mimetype: req.file.mimetype,
       size: req.file.size,
-      path: `/uploads/${req.file.filename}`, // local path
     });
+
+    // 🌩️ Upload to Cloudinary from buffer
+    const streamUpload = (buffer) => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: `smartvault/${userId}` },
+          (error, result) => {
+            if (result) resolve(result);
+            else reject(error);
+          }
+        );
+        stream.end(buffer);
+      });
+    };
+
+    const cloudResult = await streamUpload(req.file.buffer);
+
+    if (cloudResult && cloudResult.secure_url) {
+      newFile.cloudinaryUrl = cloudResult.secure_url;
+      newFile.cloudinaryId = cloudResult.public_id;
+    }
 
     await newFile.save();
 
@@ -47,14 +57,16 @@ router.post("/upload", upload.single("file"), async (req, res) => {
       fileName: newFile.customName || newFile.originalname,
     });
 
-    res.json({ message: "File uploaded successfully", file: newFile });
+    // res.json({ message: "File uploaded successfully", file: newFile });
+    res.json({ message: "File uploaded successfully", file: newFile.toObject({ virtuals: true }) });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// @route GET /api/files
+// ----------------- FETCH FILES -----------------
 router.get("/", async (req, res) => {
   try {
     const { userId, folderId } = req.query;
@@ -63,7 +75,9 @@ router.get("/", async (req, res) => {
     let query = { userId };
     if (folderId) query.folderId = folderId;
 
-    const files = await File.find(query).sort({ createdAt: -1 });
+    // const files = await File.find(query).sort({ createdAt: -1 });
+    // res.json(files);
+    const files = await File.find(query).sort({ createdAt: -1 }).lean({ virtuals: true });
     res.json(files);
   } catch (err) {
     console.error(err);
@@ -71,7 +85,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// @route GET /api/files/:id/download
+// ----------------- DOWNLOAD FILE -----------------
 router.get("/:id/download", async (req, res) => {
   try {
     const file = await File.findById(req.params.id);
@@ -89,19 +103,31 @@ router.get("/:id/download", async (req, res) => {
       fileName: file.customName || file.originalname,
     });
 
-    const filePath = path.resolve("uploads", file.filename);
-    res.download(filePath, file.originalname);
+    if (file.cloudinaryUrl) {
+      return res.redirect(file.cloudinaryUrl);
+    } else {
+      return res.status(404).json({ error: "File not available" });
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// @route DELETE /api/files/:id
+// ----------------- DELETE FILE -----------------
 router.delete("/:id", async (req, res) => {
   try {
     const file = await File.findByIdAndDelete(req.params.id);
     if (!file) return res.status(404).json({ error: "File not found" });
+
+    // 🌩️ Delete from Cloudinary
+    if (file.cloudinaryId) {
+      try {
+        await cloudinary.uploader.destroy(file.cloudinaryId);
+      } catch (err) {
+        console.error("Failed to delete from Cloudinary:", err);
+      }
+    }
 
     await Log.create({
       userId: file.userId,
@@ -110,21 +136,16 @@ router.delete("/:id", async (req, res) => {
       fileName: file.customName || file.originalname,
     });
 
-    const filePath = path.resolve("uploads", file.filename);
-    fs.unlink(filePath, (err) => {
-      if (err) console.error("Failed to delete file from disk:", err);
-    });
-
     res.json({ message: "File deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// @route PATCH /api/files/:id
+// ----------------- EDIT FILE METADATA -----------------
 router.patch("/:id", async (req, res) => {
   try {
-    const updates = req.body; 
+    const updates = req.body;
     const file = await File.findByIdAndUpdate(req.params.id, updates, { new: true });
     if (!file) return res.status(404).json({ error: "File not found" });
 
@@ -142,7 +163,7 @@ router.patch("/:id", async (req, res) => {
   }
 });
 
-// GET logs for user
+// ----------------- GET USER LOGS -----------------
 router.get("/logs/user/:userId", async (req, res) => {
   try {
     const logs = await Log.find({ userId: req.params.userId })
@@ -156,6 +177,230 @@ router.get("/logs/user/:userId", async (req, res) => {
 });
 
 export default router;
+
+
+
+
+// import express from "express";
+// import multer from "multer";
+// import File from "../models/File.js";
+// import path from "path";
+// import fs from "fs";
+// import Log from "../models/Log.js";
+// import cloudinary from "../cloudinary.js";
+
+
+// const router = express.Router();
+
+// const storage = multer.memoryStorage();
+// const upload = multer({ storage });
+
+// // Configure multer to store files locally in /uploads
+// // const storage = multer.diskStorage({
+// //   destination: (req, file, cb) => {
+// //     cb(null, "uploads/"); // store files in 'uploads' folder
+// //   },
+// //   filename: (req, file, cb) => {
+// //     cb(null, Date.now() + "-" + file.originalname); // unique filename
+// //   },
+// // });
+
+// // const upload = multer({ storage });
+
+
+// router.post("/upload", upload.single("file"), async (req, res) => {
+//   try {
+//     const { description, tags, userId, customName, folderId } = req.body;
+//     if (!userId) return res.status(400).json({ error: "Missing userId" });
+
+//     const newFile = new File({
+//       userId,
+//       folderId: folderId || null,
+//       // filename: req.file.filename,
+//       originalname: req.file.originalname,
+//       customName: customName || req.file.originalname,
+//       description,
+//       tags: tags ? tags.split(",").map((t) => t.trim()) : [],
+//       mimetype: req.file.mimetype,
+//       size: req.file.size,
+//       // path: `/uploads/${req.file.filename}`, // local path
+//     });
+
+//     // 🌩️ Upload to Cloudinary (non-blocking for local)
+//     const cloudResult = await cloudinary.uploader.upload(req.file.path, {
+//       folder: `smartvault/${userId}`,
+//     });
+
+//     if (cloudResult && cloudResult.secure_url) {
+//       newFile.cloudinaryUrl = cloudResult.secure_url;
+//       newFile.cloudinaryId = cloudResult.public_id;
+//     }
+
+//     await newFile.save();
+
+//     await Log.create({
+//       userId,
+//       action: "ADD",
+//       fileId: newFile._id,
+//       fileName: newFile.customName || newFile.originalname,
+//     });
+
+//     res.json({ message: "File uploaded successfully", file: newFile });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Server error" });
+//   }
+// });
+
+
+
+// // @route POST /api/files/upload
+// // router.post("/upload", upload.single("file"), async (req, res) => {
+// //   try {
+// //     const { description, tags, userId, customName, folderId } = req.body;
+// //     if (!userId) return res.status(400).json({ error: "Missing userId" });
+
+// //     const newFile = new File({
+// //       userId,
+// //       folderId: folderId || null,
+// //       filename: req.file.filename,
+// //       originalname: req.file.originalname,
+// //       customName: customName || req.file.originalname,
+// //       description,
+// //       tags: tags ? tags.split(",").map((t) => t.trim()) : [],
+// //       mimetype: req.file.mimetype,
+// //       size: req.file.size,
+// //       path: `/uploads/${req.file.filename}`, // local path
+// //     });
+
+// //     await newFile.save();
+
+// //     await Log.create({
+// //       userId,
+// //       action: "ADD",
+// //       fileId: newFile._id,
+// //       fileName: newFile.customName || newFile.originalname,
+// //     });
+
+// //     res.json({ message: "File uploaded successfully", file: newFile });
+// //   } catch (err) {
+// //     console.error(err);
+// //     res.status(500).json({ error: "Server error" });
+// //   }
+// // });
+
+// // @route GET /api/files
+// router.get("/", async (req, res) => {
+//   try {
+//     const { userId, folderId } = req.query;
+//     if (!userId) return res.status(400).json({ error: "Missing userId" });
+
+//     let query = { userId };
+//     if (folderId) query.folderId = folderId;
+
+//     const files = await File.find(query).sort({ createdAt: -1 });
+//     res.json(files);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Server error" });
+//   }
+// });
+
+// // @route GET /api/files/:id/download
+// router.get("/:id/download", async (req, res) => {
+//   try {
+//     const file = await File.findById(req.params.id);
+//     if (!file) return res.status(404).json({ error: "File not found" });
+
+//     // Increment downloads
+//     file.downloads = (file.downloads || 0) + 1;
+//     await file.save();
+
+//     // Log download
+//     await Log.create({
+//       userId: file.userId,
+//       action: "DOWNLOAD",
+//       fileId: file._id,
+//       fileName: file.customName || file.originalname,
+//     });
+
+//     const filePath = path.resolve("uploads", file.filename);
+//     res.download(filePath, file.originalname);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Server error" });
+//   }
+// });
+
+// // @route DELETE /api/files/:id
+// router.delete("/:id", async (req, res) => {
+//   try {
+//     const file = await File.findByIdAndDelete(req.params.id);
+//     if (!file) return res.status(404).json({ error: "File not found" });
+
+//     // 🌩️ Delete from Cloudinary if it exists
+// if (file.cloudinaryId) {
+//   try {
+//     await cloudinary.uploader.destroy(file.cloudinaryId);
+//   } catch (err) {
+//     console.error("Failed to delete from Cloudinary:", err);
+//   }
+// }
+
+
+//     await Log.create({
+//       userId: file.userId,
+//       action: "DELETE",
+//       fileId: file._id,
+//       fileName: file.customName || file.originalname,
+//     });
+
+//     const filePath = path.resolve("uploads", file.filename);
+//     fs.unlink(filePath, (err) => {
+//       if (err) console.error("Failed to delete file from disk:", err);
+//     });
+
+//     res.json({ message: "File deleted successfully" });
+//   } catch (err) {
+//     res.status(500).json({ error: "Server error" });
+//   }
+// });
+
+// // @route PATCH /api/files/:id
+// router.patch("/:id", async (req, res) => {
+//   try {
+//     const updates = req.body; 
+//     const file = await File.findByIdAndUpdate(req.params.id, updates, { new: true });
+//     if (!file) return res.status(404).json({ error: "File not found" });
+
+//     await Log.create({
+//       userId: file.userId,
+//       action: "EDIT",
+//       fileId: file._id,
+//       fileName: file.customName || file.originalname,
+//     });
+
+//     res.json(file);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Server error" });
+//   }
+// });
+
+// // GET logs for user
+// router.get("/logs/user/:userId", async (req, res) => {
+//   try {
+//     const logs = await Log.find({ userId: req.params.userId })
+//       .sort({ timestamp: -1 })
+//       .limit(20);
+//     res.json(logs);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Server error" });
+//   }
+// });
+
+// export default router;
 
 
 
