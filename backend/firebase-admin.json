@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "smartvault-73088",
+  "private_key_id": "164a91d6ca279a0aabfb7e1ee2f8563553caf82f",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC6ohnuePkbSsOG\nEztFH2xSNFlk4tC2ApueXgtorUSzgfIScvXbiCv9NfwAeQMUc+UZuDb6l9KBnwJ1\n2TXOsvMOowV0UHkveep/20aA8WebOpTdtX2Xcde533ZT2OmR7sOACivVo5B02nO6\nhnYsH0QIPDfu6F9AWC6xNGpz7xpDZfFoDgvKw/EqyUYvrQCW6BNa3Det8ewn+iDA\nfTL+oDgFHlv/sXgCb8nzft8H1vYyyVsjg9frkXobvHh2KAa62TJyMffXqbJDShX1\nS53hM69MrL1HvnqfEPHRHmtSf6yXNwtEFbZMnYM5PbSZ4nepNXWEtb++Byfz/ZtU\n3O2bqv2XAgMBAAECggEAWCUkOzGOcXnjk4i0twZKyh5oVBIdwcDEj8zZ9ZPT/TXz\nxwvdm1QadopPHUgKENhVzUpoSP14kfiwGEnAtIFm8zRCaLdzLN2XR9Cf4Vlidfl6\ngqXrjaHaYbKtN5ecZOyQEAJ9xnZsTQw5mVBVMqyHnJ4YSrEb/49GajIXzu6QCGEo\nJWjdAsL7tJADDn4f11BDDSRq46k8QPGUYiYpJDCisv8T7qMAA4202zDSPmVrJUcr\nh4MHJmFvCrK50xn7TToH/MDzCx9JvLa80oOzAoBMtTvUsZukT8gDnuzjrIpOQ54r\nOmwepClEJVuMGG3tfwdNHqvCGcZqIDoDGDV7JjRsPQKBgQDlie0ST+7XVlzYa2l3\nTGKygdKpa00w/U9ud5R4RqwHibIVia/ZFJo9MfdDQ/1NG1Vs7gQjoKPogyTW6C2p\nXxLeFpFLKc8SBE4W/4E2CTA5HkAAjkbeN39ho35le0MRMXiIYZkLr480k2NNsT8R\nKHdY/WjSkl9xtM8ZPbRqoPv0PQKBgQDQJfXIANOiE9AU98SxiXodXAAlwTjRwsZ5\noesc8nzbIIRZChYPifA6U5bn3c59k+AOMc40YvD/YodGhz46FQL9Tll4I3+VNW6O\nyUG1+L8dW4Q4+e00eJIPbIx8jA9fMPTuCzR/5q26Ltb6cT3hwPiAahj3qWQQ/O+h\noQwfngBSYwKBgQCuCSegzM5QowB+buJmO5pRsjEhl2PNkyJYpX4Cu8LPbE2EGwMj\nWoWfhHTvoWs6vVDF6KlmwfPE5TpXX27PjnBlx0KedLK1/GGg+lTjvY+8nvzz7uw4\nrGd+hlHda9nr/VBgR2+c9p1jxaRzUcJ5pe7noCuMDMMlGWw0vR5AApNGGQKBgEIR\nanw7VvGBHHErW/GGU45yH1HcjO53xovhC0G67kqXfarNescf33KECcg7LUnK4Dlh\nMbSLGzfUzF9kminRdYt1jQyHJ/3yYc9MrmDWPcNRwxxaqCIZizL+H3GA+3gZkATm\n5ZkbXVVVfMMtopi/qaEJDDfAOpTx1BYXikOW4T9FAoGAHCVuekYArSUqwNr/Bo2h\nTOzZwFIXQ3drZild5Bs/9SjUTtZN+pfUzSN2ozEDVEofbpQxdFYhN/paLUUmfhjC\nv8x/RUWx44DzGU8YZ4imBMlfh5dONkfja7f5WRd/tzHwg5SDHC6FDH28YKZTtpKB\nDw+Fs3JYWgod+TiFy68bN+4=\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@smartvault-73088.iam.gserviceaccount.com",
+  "client_id": "106985545737094098195",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40smartvault-73088.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

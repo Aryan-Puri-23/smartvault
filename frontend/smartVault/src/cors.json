@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["http://localhost:5173", "http://127.0.0.1:5173", "https://smartvault-73088.web.app", "https://smartvault-73088.firebaseapp.com"],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": ["Content-Type", "x-goog-meta-*"]
+  }
+]
