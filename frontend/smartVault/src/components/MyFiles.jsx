@@ -33,6 +33,30 @@ export default function MyFiles({ files, setFiles, userId }) {
   const [timeFilter, setTimeFilter] = useState("All Time");
   const [viewMode, setViewMode] = useState("grid"); // "grid" | "list"
 
+// Fetch files on mount
+useEffect(() => {
+  if (!userId) return;
+
+  const fetchFiles = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/files?userId=${userId}`);
+      const data = await res.json();
+      console.log("Fetched files on mount:", data);
+      setFiles(
+        data.map(file => ({
+          ...file,
+          url: file.cloudinaryUrl, // use the real DB field
+        }))
+      );
+    } catch (err) {
+      console.error("Failed to fetch files:", err);
+    }
+  };
+
+  fetchFiles();
+}, [userId]);
+
+
 
 
 const handleUpload = async (e) => {
@@ -55,10 +79,9 @@ const handleUpload = async (e) => {
     const data = await res.json();
     console.log("Upload response:", data);
 
-    // ✅ Use Cloudinary URL from backend
     const newFile = {
-      ...data.file,   // data.file contains cloudinaryUrl & other file info
-      url: data.file.url, // virtual field pointing to cloudinaryUrl
+      ...data.file,
+      url: data.file.cloudinaryUrl, // ✅ use actual Cloudinary URL
     };
     setFiles(prev => [newFile, ...prev]);
 
@@ -66,15 +89,13 @@ const handleUpload = async (e) => {
     setUploadData({ file: null, description: "", tags: "", customName: "" });
     setPreviewUrl(null);
 
-    // Optional: fetch complete file list again
-    // const filesRes = await fetch(`http://localhost:5000/api/files?userId=${userId}`);
-    // const filesData = await filesRes.json();
-    // setFiles(filesData);
   } catch (err) {
     console.error("Upload failed:", err);
     alert("Upload failed!");
   }
 };
+
+
 
 // const handleUpload = async (e) => {
 //   e.preventDefault();
@@ -433,7 +454,7 @@ const handleSaveEdit = async () => {
                     {(file.mimetype || "").startsWith("image/") ? (
                       <img
                         // src={`http://localhost:5000/uploads/${encodeURIComponent(file.filename)}`}
-                        src={file.url}
+                        src={file.cloudinaryUrl || file.url}
 
                         alt={file.originalname || file.customName}
                         className="h-full w-full object-cover cursor-pointer"
@@ -564,7 +585,7 @@ a.download = file.customName ? `${file.customName}.${ext}` : file.originalname;
                     {(file.mimetype || "").startsWith("image/") ? (
                       <img
                         // src={`http://localhost:5000/uploads/${encodeURIComponent(file.filename)}`}
-                        src={file.url}
+                        src={file.cloudinaryUrl || file.url}
 
                         alt={file.originalname}
                         className="h-full w-full object-cover cursor-pointer"
@@ -852,13 +873,13 @@ a.download = file.customName ? `${file.customName}.${ext}` : file.originalname;
 
             {selectedFile.mimetype?.startsWith("image/") ? (
   <img 
-    src={selectedFile.url} // use url instead of cloudinaryUrl
+    src={selectedFile.cloudinaryUrl || selectedFile.url} // use url instead of cloudinaryUrl
     alt={selectedFile.originalname} 
     className="w-full h-auto object-contain" 
   />
 ) : selectedFile.mimetype?.startsWith("video/") ? (
   <video 
-    src={selectedFile.url} // use url instead of cloudinaryUrl
+    src={selectedFile.cloudinaryUrl || selectedFile.url} // use url instead of cloudinaryUrl
     controls 
     className="w-full h-auto" 
   />
