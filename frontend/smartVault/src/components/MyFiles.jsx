@@ -34,13 +34,18 @@ export default function MyFiles({ files, setFiles, userId }) {
   const [timeFilter, setTimeFilter] = useState("All Time");
   const [viewMode, setViewMode] = useState("grid"); // "grid" | "list"
 
+  const API_BASE_URL =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000/api"
+    : "/api";
+
   // Fetch files on mount
   useEffect(() => {
     if (!userId) return;
 
     const fetchFiles = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/files?userId=${userId}`);
+        const res = await fetch(`${API_BASE_URL}/files?userId=${userId}`);
         const data = await res.json();
         console.log("Fetched files on mount:", data);
         setFiles(
@@ -69,10 +74,10 @@ export default function MyFiles({ files, setFiles, userId }) {
       formData.append("userId", userId);
       formData.append("customName", uploadData.customName);
 
-      const res = await fetch("http://localhost:5000/api/files/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(`${API_BASE_URL}/files/upload`, {
+  method: "POST",
+  body: formData,
+});
 
       const data = await res.json();
       console.log("Upload response:", data);
@@ -95,9 +100,8 @@ export default function MyFiles({ files, setFiles, userId }) {
 
   const handleDelete = async (id) => {
     try {
-      await fetch(`http://localhost:5000/api/files/${id}`, {
-        method: "DELETE",
-      });
+      await fetch(`${API_BASE_URL}/files/${id}`, { method: "DELETE" });
+
       // fetchFiles();
       setFiles(prev => prev.filter(f => f._id !== id));
     } catch (err) {
@@ -143,11 +147,11 @@ export default function MyFiles({ files, setFiles, userId }) {
 
   const handleToggleFavorite = async (file) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/files/${file._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ favorite: !file.favorite }),
-      });
+      const res = await fetch(`${API_BASE_URL}/files/${file._id}`, {
+  method: "PATCH",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ favorite: !file.favorite }),
+});
       if (!res.ok) throw new Error("Failed to toggle favorite");
       // fetchFiles();
       const updatedFile = await res.json();
