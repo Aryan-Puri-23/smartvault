@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Dropdown from "./ui/Dropdown";
 import GridView from "./GridView";
-import MemoryView from "./MemorYView";
+import MemoryView from "./MemoryView";
 import {
   Upload,
   Grid,
