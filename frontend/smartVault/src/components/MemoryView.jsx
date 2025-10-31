@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function MemoriesView({ files }) {
+export default function MemoryView({ files }) {
   // Group by month-year or similar tags
   const grouped = files.reduce((acc, f) => {
     const date = new Date(f.createdAt);

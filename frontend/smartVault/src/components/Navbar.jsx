@@ -41,7 +41,7 @@ export default function Navbar() {
       <div className="container mx-auto px-4 py-4 flex items-center justify-between flex-wrap sm:flex-nowrap">
         {/* Left Side (Logo) */}
         <div className="flex items-center space-x-2 flex-shrink-0">
-          <Database className="h-8 w-8 text-blue-600" />
+          {/* <Database className="h-8 w-8 text-blue-600" /> */}
           <h1 className="text-2xl font-bold text-gray-900">SmartMedia Vault</h1>
         </div>
 
@@ -50,9 +50,9 @@ export default function Navbar() {
           {/* Desktop Menu (sm+) */}
           <div className="hidden sm:flex items-center space-x-4">
             {/* Dark Mode Toggle */}
-            <button className="flex items-center justify-center bg-gray-200 text-gray-700 rounded-md p-2 hover:bg-gray-300 transition">
+            {/* <button className="flex items-center justify-center bg-gray-200 text-gray-700 rounded-md p-2 hover:bg-gray-300 transition">
               <Moon className="h-5 w-5" />
-            </button>
+            </button> */}
 
             {user ? (
               <>
