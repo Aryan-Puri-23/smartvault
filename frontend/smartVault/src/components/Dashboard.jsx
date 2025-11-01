@@ -16,19 +16,25 @@ export default function Dashboard() {
 
 
   useEffect(() => {
-    if (!userId) return;
-    const fetchFiles = async () => {
-      try {
-        const res = await fetch(`http://localhost:5000/api/files?userId=${userId}`);
-        if (!res.ok) throw new Error("Failed to fetch files");
-        const data = await res.json();
-        setFiles(data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchFiles();
-  }, [userId]);
+  if (!userId) return;
+
+  const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
+  const fetchFiles = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/files?userId=${userId}`);
+      if (!res.ok) throw new Error("Failed to fetch files");
+      const data = await res.json();
+      setFiles(data);
+    } catch (err) {
+      console.error("Error fetching files:", err);
+    }
+  };
+
+  fetchFiles();
+}, [userId]);
+
 
 
 

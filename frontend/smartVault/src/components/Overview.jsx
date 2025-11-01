@@ -25,13 +25,28 @@ export default function Overview() {
   const [actionFilter, setActionFilter] = useState("ALL");
   const [dateFilter, setDateFilter] = useState({ from: "", to: "" });
 
-  useEffect(() => {
-    if (!userId) return;
-    fetch(`http://localhost:5000/api/files?userId=${userId}`)
-      .then((res) => res.json())
-      .then((data) => setFiles(data))
-      .catch((err) => console.error(err));
-  }, [userId]);
+const API_BASE_URL =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000/api"
+    : "https://smartvault-backend.onrender.com/api";
+
+
+
+useEffect(() => {
+  if (!userId) return;
+
+  fetch(`${API_BASE_URL}/files?userId=${userId}`)
+    .then((res) => res.json())
+    .then((data) => {
+      const formatted = data.map(file => ({
+        ...file,
+        url: file.cloudinaryUrl || file.url,
+      }));
+      setFiles(formatted);
+    })
+    .catch((err) => console.error("Error fetching overview files:", err));
+}, [userId]);
+
 
   useEffect(() => {
     if (!files || files.length === 0) {
@@ -64,12 +79,12 @@ export default function Overview() {
   }, [files]);
 
   useEffect(() => {
-    if (!userId) return;
-    fetch(`http://localhost:5000/api/files/logs/user/${userId}`)
-      .then((res) => res.json())
-      .then((data) => setLogs(data))
-      .catch((err) => console.error(err));
-  }, [userId]);
+  if (!userId) return;
+  fetch(`${API_BASE_URL}/files/logs/user/${userId}`)
+    .then((res) => res.json())
+    .then((data) => setLogs(data))
+    .catch((err) => console.error(err));
+}, [userId]);
 
   const filteredLogs = logs
     .filter((log) =>

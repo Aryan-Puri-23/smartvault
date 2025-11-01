@@ -1,4 +1,5 @@
 import { Eye, Share2, Download, Trash2, Star } from "lucide-react";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
 export default function GridView({
   filteredFiles,
@@ -100,9 +101,7 @@ export default function GridView({
                 href="#"
                 onClick={async (e) => {
                   e.preventDefault();
-                  const res = await fetch(
-                    `http://localhost:5000/api/files/${file._id}/download`
-                  );
+                  const res = await fetch(`${API_BASE_URL}/files/${file._id}/download`);
                   const blob = await res.blob();
                   const url = window.URL.createObjectURL(blob);
                   const a = document.createElement("a");
