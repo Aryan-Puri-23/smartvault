@@ -32,14 +32,13 @@ export default function MyFiles({ files, setFiles, userId }) {
   const [editData, setEditData] = useState({ customName: "", description: "", tags: "" });
   const [typeFilter, setTypeFilter] = useState("All Types");
   const [timeFilter, setTimeFilter] = useState("All Time");
-  const [viewMode, setViewMode] = useState("grid"); // "grid" | "list"
+  const [viewMode, setViewMode] = useState("grid");
 
   const API_BASE_URL =
   import.meta.env.MODE === "development"
     ? "http://localhost:5000/api"
-    : "/api";
+    : "https://smartvault-backend.onrender.com/api";
 
-  // Fetch files on mount
   useEffect(() => {
     if (!userId) return;
 
@@ -173,7 +172,7 @@ export default function MyFiles({ files, setFiles, userId }) {
 
   const handleSaveEdit = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/files/${editingFile._id}`, {
+      const res = await fetch(`${API_BASE_URL}/files/${editingFile._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -15,6 +15,9 @@ router.post("/upload", upload.single("file"), async (req, res) => {
   try {
     const { description, tags, userId, customName, folderId } = req.body;
     if (!userId) return res.status(400).json({ error: "Missing userId" });
+    if (!req.file) {
+  return res.status(400).json({ error: "No file uploaded" });
+}
 
     const newFile = new File({
       userId,
